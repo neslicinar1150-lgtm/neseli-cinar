@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kayıt Ol</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap" rel="stylesheet">
+
+<style>
+  /* 🎯 Gerçek imleci gizle */
+body {
+  cursor: none !important;
+}
+
+/* 🌳 Neşeli Çınar sahte imleci */
+#neseliCursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 48px;          /* BOYUT – İSTERSEN 32 / 64 YAP */
+  height: 48px;
+  pointer-events: none;
+  z-index: 999999;
+  transform: translate(-6px, -6px); /* tıklama ucu ayarı */
+  transition: transform 0.03s linear;
+}
+  
+body{
+  margin:0;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#f6f9fc;
+  font-family:'Fredoka', sans-serif;
+}
+.form{
+  width:100%;
+  max-width:360px;
+  padding:30px;
+}
+input{
+  width:100%;
+  padding:14px;
+  margin-bottom:12px;
+  border-radius:10px;
+  border:1px solid #ccc;
+  font-size:15px;
+}
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:10px;
+  background:#00c853;
+  color:white;
+  font-size:16px;
+}
+button:disabled{
+  opacity:.5;
+}
+a{
+  display:block;
+  margin-top:15px;
+  text-align:center;
+  color:#00c853;
+  text-decoration:none;
+}
+
+/* ÜST LOADER */
+#top-loader{
+  position:fixed;
+  top:0;
+  left:0;
+  height:4px;
+  width:0;
+  background:#00c853;
+  z-index:9999;
+  transition:width .3s ease, opacity .3s ease;
+}
+
+.fade{
+  opacity:0;
+  transform:translateX(15px);
+  transition:.3s ease;
+}
+.fade.show{
+  opacity:1;
+  transform:translateX(0);
+}
+
+/* ==== ROBOT DOĞRULAMA ==== */
+.captcha{
+  margin:15px 0;
+  width:100%;
+  height:60px;
+  background:#2bb34a;
+  border-radius:40px;
+  position:relative;
+  user-select:none;
+}
+.captcha.success{ background:#1e8f3a; }
+.captcha.error{ background:#c0392b; }
+
+.captcha-text{
+  position:absolute;
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  pointer-events:none;
+}
+
+.handle{
+  width:50px;
+  height:50px;
+  background:#fff;
+  border-radius:50%;
+  position:absolute;
+  top:5px;
+  left:5px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+  cursor:grab;
+}
+
+  /* 🔒 Gerçek imleci HER YERDE zorla gizle */
+html, body,
+*,
+*:hover,
+*:active,
+*:focus {
+  cursor: none !important;
+}
+
+  #neseliCursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 48px;     /* istersen 32 / 64 */
+  height: 48px;
+  pointer-events: none;
+  z-index: 2147483647; /* MAX Z-INDEX */
+  transform: translate(-8px, -8px);
+}
+</style>
+</head>
+
+<body class="fade">
+  <img 
+  id="neseliCursor"
+  src="https://neselicinar.com.tr/Resimler/mouse-cinar.png"
+  alt="Neşeli Çınar İmleç">
+<div id="top-loader"></div>
+
+<div class="form">
+  <h2>Hesap Oluştur</h2>
+
+  <input id="email" placeholder="E-posta">
+  <input id="password" type="password" placeholder="Şifre">
+
+  <!-- ROBOT DOĞRULAMA -->
+  <div class="captcha" id="captcha">
+    <div class="captcha-text" id="captchaText">Sürükle ve doğrula →</div>
+    <div class="handle" id="handle">▶</div>
+  </div>
+
+  <button id="registerBtn" onclick="register()" disabled>Kaydol</button>
+
+  <a href="login.html">Zaten hesabın var mı?</a>
+</div>
+
+<script>
+const loader = document.getElementById("top-loader");
+const registerBtn = document.getElementById("registerBtn");
+
+/* LOADER */
+function startLoading(){
+  loader.style.opacity = 1;
+  loader.style.width = "30%";
+  setTimeout(()=>loader.style.width="65%",200);
+}
+function stopLoading(){
+  loader.style.width = "100%";
+  setTimeout(()=>{
+    loader.style.opacity = 0;
+    loader.style.width = "0";
+  },300);
+}
+window.onload = ()=>{
+  document.body.classList.add("show");
+  stopLoading();
+}
+
+/* ==== ROBOT DOĞRULAMA LOGIC ==== */
+const handle = document.getElementById("handle");
+const captcha = document.getElementById("captcha");
+const captchaText = document.getElementById("captchaText");
+
+let dragging=false;
+let yPositions=[];
+let verified=false;
+
+handle.addEventListener("mousedown",()=>{
+  dragging=true;
+  yPositions=[];
+});
+
+document.addEventListener("mousemove",e=>{
+  if(!dragging || verified) return;
+
+  yPositions.push(e.clientY);
+
+  let x = e.clientX - captcha.offsetLeft - handle.offsetWidth/2;
+  let max = captcha.offsetWidth - handle.offsetWidth - 5;
+  x = Math.max(5, Math.min(x, max));
+  handle.style.left = x+"px";
+
+  if(x >= max-2){
+    dragging=false;
+
+    let deltaY = Math.max(...yPositions) - Math.min(...yPositions);
+
+    if(deltaY > 6){
+      captcha.classList.add("success");
+      captchaText.innerText="Doğrulandı ✓";
+      handle.innerText="✓";
+      registerBtn.disabled=false;
+      verified=true;
+    }else{
+      captcha.classList.add("error");
+      captchaText.innerText="Robot algılandı!";
+      setTimeout(resetCaptcha,1200);
+    }
+  }
+});
+
+document.addEventListener("mouseup",()=>dragging=false);
+
+function resetCaptcha(){
+  captcha.classList.remove("error");
+  handle.style.left="5px";
+  handle.innerText="▶";
+  captchaText.innerText="Sürükle ve doğrula →";
+}
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import {
+  getAuth,
+  createUserWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDrMzDc1CqCmAsFByYGsRr3itasWXWalNU",
+  authDomain: "hesap-3db5f.firebaseapp.com",
+  projectId: "hesap-3db5f",
+  storageBucket: "hesap-3db5f.firebasestorage.app",
+  messagingSenderId: "704840876083",
+  appId: "1:704840876083:web:c1395429c4aa2f60ad6346"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+
+window.register = function(){
+  if(!verified){
+    alert("Lütfen robot doğrulamasını geçin");
+    return;
+  }
+
+  startLoading();
+  const email = email.value;
+  const pass  = password.value;
+
+  createUserWithEmailAndPassword(auth, email, pass)
+    .then(()=>{
+      localStorage.setItem("user", email);
+      location.href="dashboard.html";
+    })
+    .catch(err=>{
+      alert(err.message);
+      stopLoading();
+    });
+}
+
+  // 🌳 Poki tarzı imleç takip sistemi
+const neseliCursor = document.getElementById("neseliCursor");
+
+document.addEventListener("mousemove", e => {
+  neseliCursor.style.left = e.clientX + "px";
+  neseliCursor.style.top  = e.clientY + "px";
+});
+
+  document.addEventListener("mousemove", e => {
+  neseliCursor.style.left = e.clientX + "px";
+  neseliCursor.style.top  = e.clientY + "px";
+});
+
+// Sekme değişince kaybolmasın
+document.addEventListener("mouseenter", () => {
+  neseliCursor.style.display = "block";
+});
+document.addEventListener("mouseleave", () => {
+  neseliCursor.style.display = "none";
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Kayıtlı Hesaplar</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+  font-family: Arial, sans-serif;
+  background:#f6f9fc;
+  margin:0;
+  padding:20px;
+}
+.account{
+  background:#fff;
+  padding:15px;
+  border-radius:10px;
+  margin-bottom:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  box-shadow:0 5px 15px rgba(0,0,0,.08);
+}
+button{
+  background:#e53935;
+  color:#fff;
+  border:none;
+  padding:8px 12px;
+  border-radius:6px;
+  cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<h2>Bu Cihazdaki Hesaplar</h2>
+<div id="list"></div>
+
+<script>
+  const list = document.getElementById("list");
+let accounts = JSON.parse(localStorage.getItem("cinar_accounts")) || [];
+
+function render(){
+  list.innerHTML = "";
+
+  if(accounts.length === 0){
+    list.innerHTML = "<p>Bu cihazda kayıtlı hesap yok.</p>";
+    return;
+  }
+
+  accounts.forEach((acc, i) => {
+    const div = document.createElement("div");
+    div.className = "account";
+    div.innerHTML = `
+      <span>${acc.email}</span>
+      <button onclick="removeAccount(${i})">Cihazdan Kaldır</button>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function removeAccount(index){
+  if(confirm("Bu hesabı cihazdan kaldırmak istiyor musun?")){
+    accounts.splice(index,1);
+    localStorage.setItem("cinar_accounts", JSON.stringify(accounts));
+    render();
+  }
+}
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neşeli Çınar</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="https://neselicinar.com.tr/1A32B532-738D-4DD5-BA6B-80801E146D9B.png">
+
+<style>
+
+/* ============================= */
+/* GERÇEK SCROLLBAR TAM KAPALI   */
+/* ============================= */
+html, body{
+  margin:0;
+  height:100%;
+  overflow:hidden;
+  background:#32A5DC;
+  font-family:Arial, sans-serif;
+}
+
+/* ============================= */
+/* SCROLL EDİLEN ALAN            */
+/* ============================= */
+#scrollArea{
+  height:100%;
+  overflow-y:scroll;
+  padding-top:80px;
+  padding-left:20px;
+  padding-right:20px;
+}
+
+/* Tarayıcı scrollbar gizle */
+#scrollArea::-webkit-scrollbar{ display:none; }
+#scrollArea{ scrollbar-width:none; }
+
+/* ============================= */
+/* SAHTE İMLEÇ                   */
+/* ============================= */
+html, body, * { cursor:none !important; }
+
+#neseliCursor{
+  position:fixed;
+  width:48px;
+  height:83px;
+  pointer-events:none;
+  z-index:2147483647;
+  transform:translate(-8px,-8px);
+  transition:transform .15s ease, filter .15s ease;
+}
+
+.cursor-hover{
+  transform:translate(-8px,-8px) scale(1.25);
+  filter:drop-shadow(0 0 10px #00ff66);
+}
+
+.cursor-click{
+  transform:translate(-8px,-14px) scale(1.15);
+}
+
+/* ============================= */
+/* NAVBAR                        */
+/* ============================= */
+.navbar{
+  position:fixed;
+  top:0;
+  left:0;
+  height:60px;
+  width:100%;
+  background:#fff;
+  display:flex;
+  align-items:center;
+  padding:0 20px;
+  z-index:1000;
+}
+
+.logo-text{
+  font-family:"Fredoka", sans-serif;
+  font-size:32px;
+  font-weight:600;
+}
+
+/* ============================= */
+/* SABİT BUTON                   */
+/* ============================= */
+.sabit-buton{
+  position:fixed;
+  bottom:20px;
+  left:20px;
+  background:#00FF00;
+  color:#000;
+  padding:12px 18px;
+  border-radius:10px;
+  text-decoration:none;
+  font-weight:bold;
+  z-index:999;
+}
+
+/* Yukarı çık */
+#topBtn{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  padding:12px 16px;
+  border-radius:50%;
+  border:none;
+  background:#333;
+  color:#fff;
+  display:none;
+  z-index:999;
+}
+
+/* ============================= */
+/* ÖZEL SCROLLBAR                */
+/* ============================= */
+.custom-scrollbar{
+  position:fixed;
+  right:8px;
+  top:70px;
+  width:14px;
+  height:calc(100vh - 90px);
+  background:rgba(255,255,255,0.35);
+  border-radius:10px;
+  z-index:9999;
+}
+
+.custom-thumb{
+  position:absolute;
+  width:100%;
+  background:#00ff66;
+  border-radius:10px;
+  cursor:grab;
+}
+
+</style>
+</head>
+
+<body oncontextmenu="return false;">
+
+<img id="neseliCursor"
+src="https://neselicinar.com.tr/Resimler/mouse-cinar.png">
+
+<nav class="navbar">
+  <div class="logo-text" id="logoReload">Neşeli Çınar</div>
+</nav>
+
+<div id="scrollArea">
+
+  <div id="searchArea">
+    <a href="https://neselicinar.com.tr/Limonculuk.html">
+      <img src="Resimler/Limon.png" width="300">
+      <h3>Limonculuk.pdf</h3>
+    </a>
+  </div>
+
+  <div style="height:2500px"></div>
+
+</div>
+
+<a href="sikayetveistek.html" class="sabit-buton">
+İstek ve Şikayetleriniz
+</a>
+
+<button id="topBtn">↑</button>
+
+<div class="custom-scrollbar" id="bar">
+  <div class="custom-thumb" id="thumb"></div>
+</div>
+
+<script>
+
+/* ============================= */
+/* SAHTE CURSOR                  */
+/* ============================= */
+const cursor=document.getElementById("neseliCursor");
+let x=0,y=0,tx=0,ty=0;
+
+document.addEventListener("mousemove",e=>{
+  x=e.clientX; y=e.clientY;
+});
+
+function animate(){
+  tx+=(x-tx)*0.25;
+  ty+=(y-ty)*0.25;
+  cursor.style.left=tx+"px";
+  cursor.style.top=ty+"px";
+  requestAnimationFrame(animate);
+}
+animate();
+
+document.querySelectorAll("a,button").forEach(el=>{
+  el.onmouseenter=()=>cursor.classList.add("cursor-hover");
+  el.onmouseleave=()=>cursor.classList.remove("cursor-hover");
+});
+
+document.addEventListener("mousedown",()=>cursor.classList.add("cursor-click"));
+document.addEventListener("mouseup",()=>cursor.classList.remove("cursor-click"));
+
+/* ============================= */
+/* YUKARI ÇIK                    */
+/* ============================= */
+const topBtn=document.getElementById("topBtn");
+const scrollArea=document.getElementById("scrollArea");
+
+scrollArea.addEventListener("scroll",()=>{
+  topBtn.style.display=scrollArea.scrollTop>300?"block":"none";
+});
+
+topBtn.onclick=()=>scrollArea.scrollTo({top:0,behavior:"smooth"});
+document.getElementById("logoReload").onclick=()=>location.reload();
+
+/* ============================= */
+/* CUSTOM SCROLLBAR              */
+/* ============================= */
+const bar=document.getElementById("bar");
+const thumb=document.getElementById("thumb");
+
+let dragging=false,startY,startTop;
+
+function updateThumb(){
+  const ratio=scrollArea.clientHeight/scrollArea.scrollHeight;
+  thumb.style.height=Math.max(ratio*bar.clientHeight,50)+"px";
+}
+
+function syncThumb(){
+  const maxScroll=scrollArea.scrollHeight-scrollArea.clientHeight;
+  const maxTop=bar.clientHeight-thumb.clientHeight;
+  thumb.style.top=(scrollArea.scrollTop/maxScroll)*maxTop+"px";
+}
+
+thumb.addEventListener("mousedown",e=>{
+  dragging=true;
+  startY=e.clientY;
+  startTop=thumb.offsetTop;
+});
+
+document.addEventListener("mousemove",e=>{
+  if(!dragging) return;
+  let delta=e.clientY-startY;
+  let maxTop=bar.clientHeight-thumb.clientHeight;
+  let newTop=Math.max(0,Math.min(startTop+delta,maxTop));
+  thumb.style.top=newTop+"px";
+
+  let ratio=newTop/maxTop;
+  scrollArea.scrollTop=ratio*(scrollArea.scrollHeight-scrollArea.clientHeight);
+});
+
+document.addEventListener("mouseup",()=>dragging=false);
+
+scrollArea.addEventListener("scroll",syncThumb);
+
+updateThumb();
+syncThumb();
+window.addEventListener("resize",updateThumb);
+
+</script>
+
+
+<!-- Multi Language System -->
+<script>
+function changeLang(lang){
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-tr]").forEach(el=>{
+    el.innerText = el.getAttribute("data-"+lang);
+  });
+  if(lang === "ar"){
+    document.body.style.direction = "rtl";
+  } else {
+    document.body.style.direction = "ltr";
+  }
+  localStorage.setItem("siteLang", lang);
+}
+
+window.addEventListener("DOMContentLoaded", ()=>{
+  const savedLang = localStorage.getItem("siteLang");
+  const browserLang = navigator.language.slice(0,2);
+  const supported = ["tr","en","de","fr","es","ar","ru"];
+  const finalLang = supported.includes(browserLang) ? browserLang : "en";
+  changeLang(savedLang || finalLang);
+});
+</script>
+
+</body>
+</html>

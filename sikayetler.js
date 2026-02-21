@@ -1,0 +1,1 @@
+const allowedExtensions = ["jpg", "jpeg", "png", "heic", "docx", "txt"];

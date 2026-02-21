@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+         <link rel="icon" href="/neseli-cinar-site/1A32B532-738D-4DD5-BA6B-80801E146D9B.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sayı Tahmin Oyunu</title>
+
+<style>
+         
+.yuvarlak{border-radius:100px;
+         background:aliceblue;}
+.sms{background:#00ff00}
+
+body{
+  margin:0;
+  background:#35a6df;
+  font-family:Arial,sans-serif;
+  height:100vh;
+}
+
+/* OYUN ALANI */
+.oyun{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  background:#fff;
+  padding:25px;
+  width:330px;
+  border-radius:15px;
+  text-align:center;
+  box-shadow:0 10px 25px rgba(0,0,0,.2);
+}
+
+/* FULLSCREEN */
+.oyun:fullscreen{
+  width:100vw;
+  height:100vh;
+  border-radius:0;
+}
+
+/* NAVBAR */
+.oyun-navbar{
+  background:aliceblue;
+  display:flex;
+  gap:5px;
+  padding:5px;
+  cursor:move;
+  user-select:none;
+}
+
+input,button{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  font-size:16px;
+}
+
+.reset{background:#4caf50}
+.paylas{background:#2196f3}
+
+/* SAĞ TIK MENÜSÜ */
+#sagTikMenu{
+  position:fixed;
+  background:#fff;
+  border-radius:12px;
+  box-shadow:0 10px 25px rgba(0,0,0,.35);
+  padding:8px;
+  display:none;
+  z-index:99999;
+  min-width:240px;
+}
+
+#sagTikMenu .menu-item{
+  padding:10px;
+  cursor:pointer;
+  border-radius:8px;
+}
+
+#sagTikMenu .menu-item:hover{
+  background:#f0f0f0;
+}
+</style>
+</head>
+
+<body>
+<div class="oyun" id="Alan_div">
+
+  <div class="oyun-navbar" id="suruklemeAlani">
+    <a href="https://neslicinar1150-lgtm.github.io/neseli-cinar-site">
+      <button class="yuvarlak">X</button>
+    </a>
+    <a href="neselioyun-down.html">
+      <button class="yuvarlak">-</button>
+    </a>
+    <button class="yuvarlak" id="fullscreenBtn" onclick="oyunTamEkran()">[ <> ]</button>             <p style="color: green">Sayı Tahmin Oyunu</p>
+  </div>
+
+  <h2>🎯 Sayı Tahmin Oyunu</h2>
+
+  <p>
+    ❤️ Hak: <span id="hak">3</span> |
+    🔁 Tur: <span id="tur">1</span>
+  </p>
+
+  <input type="number" id="tahmin" placeholder="Tahminin">
+  <button onclick="tahminEt()">Tahmin Et</button>
+  <h3 id="sonuc"></h3>
+
+  <button class="sms" onclick="smsGonder()">SMS ile skoru paylaş</button>
+  <button class="reset" onclick="yenidenBasla()">🔁 Yeniden Başlat</button>
+  <button class="paylas" onclick="skoruPaylas()">📤 Skoru Paylaş</button>
+
+</div>
+
+<!-- SAĞ TIK / UZUN BASMA MENÜSÜ -->
+<div id="sagTikMenu">
+  <div class="menu-item" onclick="siteyeGit()">❌ | Kapat</div>
+  <div class="menu-item" onclick="kucult()">➖ | Simge Durumuna Küçült</div>
+  <div class="menu-item" onclick="oyunTamEkran()">🖥️ | Tam Ekran</div>
+</div>
+
+<script>
+/* ===== OYUN ===== */
+const Alan=document.getElementById("Alan_div");
+const hakEl=document.getElementById("hak");
+const turEl=document.getElementById("tur");
+const tahminInput=document.getElementById("tahmin");
+const sonuc=document.getElementById("sonuc");
+const fullscreenBtn=document.getElementById("fullscreenBtn");
+
+let tutulanSayi,hakSayisi,turSayisi;
+let oyunBitti=false, fullscreenAktif=false;
+
+oyunuBaslat();
+
+function oyunuBaslat(){
+  tutulanSayi=Math.floor(Math.random()*10)+1;
+  hakSayisi=3;
+  turSayisi=1;
+  oyunBitti=false;
+  sonuc.innerText="";
+  tahminInput.value="";
+  guncelle();
+}
+
+function yenidenBasla(){ oyunuBaslat(); }
+
+function guncelle(){
+  hakEl.innerText=hakSayisi;
+  turEl.innerText=turSayisi;
+}
+
+function tahminEt(){
+  if(oyunBitti) return;
+  const g=Number(tahminInput.value);
+  if(!g) return alert("Sayı gir");
+
+  if(g===tutulanSayi){
+    sonuc.innerText="🎉 Kazandın!";
+    oyunBitti=true;
+    return;
+  }
+
+  hakSayisi--;
+  if(hakSayisi===0){
+    sonuc.innerText="😢 Bitti! Sayı: "+tutulanSayi;
+    oyunBitti=true;
+    guncelle();
+    return;
+  }
+
+  turSayisi++;
+  sonuc.innerText=g<tutulanSayi?"📈 Daha Büyük":"📉 Daha Küçük";
+  guncelle();
+}
+
+/* ===== FULLSCREEN ===== */
+function oyunTamEkran(){
+  if(!document.fullscreenElement){
+    Alan.requestFullscreen();
+    fullscreenBtn.innerText="[ >< ]";
+    fullscreenAktif=true;
+  }else{
+    document.exitFullscreen();
+  }
+}
+
+document.addEventListener("fullscreenchange",()=>{
+  if(!document.fullscreenElement){
+    fullscreenBtn.innerText="[ <> ]";
+    fullscreenAktif=false;
+  }
+});
+
+/* ===== PAYLAŞIM ===== */
+function skoruPaylas(){
+  const t=new Date().toLocaleDateString("tr-TR");
+  const m=`Ben ${t} tarihinde ${3-hakSayisi} hakkımı denedim.`;
+  navigator.clipboard?.writeText(m);
+  navigator.share?.({text:m});
+}
+
+function smsGonder(){
+  const n=prompt("📱 Telefon numarası:");
+  if(!n) return;
+  const t=new Date().toLocaleDateString("tr-TR");
+  const m=`Ben ${t} tarihinde ${3-hakSayisi} hakkımı denedim.`;
+  location.href=`sms:${n}?body=${encodeURIComponent(m)}`;
+}
+
+/* ===== SAĞ TIK & UZUN BASMA ===== */
+const menu=document.getElementById("sagTikMenu");
+let basmaZaman;
+
+document.addEventListener("contextmenu",e=>{
+  if(!e.target.closest("#Alan_div")) return;
+  e.preventDefault();
+  menu.style.display="block";
+  menu.style.left=e.clientX+"px";
+  menu.style.top=e.clientY+"px";
+});
+
+document.addEventListener("touchstart",e=>{
+  if(!e.target.closest("#Alan_div")) return;
+  basmaZaman=setTimeout(()=>{
+    const t=e.touches[0];
+    menu.style.display="block";
+    menu.style.left=t.clientX+"px";
+    menu.style.top=t.clientY+"px";
+  },600);
+},{passive:false});
+
+document.addEventListener("touchend",()=>clearTimeout(basmaZaman));
+document.addEventListener("click",()=>menu.style.display="none");
+
+/* ===== SÜRÜKLEME (PC + MOBİL) ===== */
+const dragArea=document.getElementById("suruklemeAlani");
+let surukleniyor=false, ofsetX=0, ofsetY=0;
+
+function basla(x,y){
+  if(fullscreenAktif) return;
+  surukleniyor=true;
+  const r=Alan.getBoundingClientRect();
+  ofsetX=x-r.left;
+  ofsetY=y-r.top;
+}
+
+function hareket(x,y){
+  if(!surukleniyor || fullscreenAktif) return;
+  Alan.style.left=(x-ofsetX)+"px";
+  Alan.style.top =(y-ofsetY)+"px";
+  Alan.style.transform="none";
+}
+
+dragArea.addEventListener("mousedown",e=>basla(e.clientX,e.clientY));
+document.addEventListener("mousemove",e=>hareket(e.clientX,e.clientY));
+document.addEventListener("mouseup",()=>surukleniyor=false);
+
+dragArea.addEventListener("touchstart",e=>{
+  const t=e.touches[0];
+  basla(t.clientX,t.clientY);
+},{passive:false});
+
+document.addEventListener("touchmove",e=>{
+  if(!surukleniyor) return;
+  const t=e.touches[0];
+  hareket(t.clientX,t.clientY);
+},{passive:false});
+
+document.addEventListener("touchend",()=>surukleniyor=false);
+
+/* ===== MENÜ AKSİYONLARI ===== */
+function siteyeGit(){
+  location.href="https://neslicinar1150-lgtm.github.io/neseli-cinar-site";
+}
+function kucult(){
+  location.href="neselioyun-down.html";
+}
+
+</script>
+
+</body>
+</html>

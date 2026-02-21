@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <link rel="icon" href="/neseli-cinar-site/1A32B532-738D-4DD5-BA6B-80801E146D9B.png">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<title>Arama Sonuçları - ÇınArama</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+#cursor {
+  position: fixed;
+  width: 32px;
+  height: 32px;
+  pointer-events: none;
+  transform: translate(0, 0);
+  z-index: 9999;
+}
+  
+body {
+    cursor: url("cursor_64x64.png") 16 16, auto;
+  }
+
+/* ALT YÜKLEME ANİMASYONU */
+#bottomLoader {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 6px;
+  background: rgba(0,0,0,0.1);
+  z-index: 100000;
+}
+
+#bottomLoaderBar {
+  height: 100%;
+  width: 0%;
+  background: #00ff00;
+  transition: width 0.4s ease;
+}
+
+/* Sağ alt köşe arama */
+.sag-alt-arama {
+  position: fixed;
+  right: 15px;
+  bottom: 15px;
+  z-index: 9999;
+}
+
+.sag-alt-arama input[type="search"] {
+  padding: 8px 12px;
+  border-radius: 20px;
+  border: 2px solid #ffcc00;
+  outline: none;
+  font-size: 14px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.sag-alt-arama input[type="search"]:focus {
+  border-color: #ff9900;
+}
+
+/* Ana sayfa butonu */
+.ana-sayfa-buton {
+  position: fixed;
+  left: 15px;
+  bottom: 15px;
+  background-color: aliceblue;
+  color: #000;
+  padding: 10px 14px;
+  border-radius: 100px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 14px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  z-index: 9999;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.ana-sayfa-buton:hover {
+  background-color: #e6f3ff;
+  transform: scale(1.05);
+}
+</style>
+</head>
+
+<body>
+
+<!-- 🌳 SAHTE İMLEÇ -->
+<img
+  id="neseliCursor"
+  src="https://neselicinar.com.tr/Resimler/mouse-cinar.png"
+  alt="Neşeli Çınar İmleç">
+
+<!-- ALT YÜKLEME -->
+<div id="bottomLoader">
+  <div id="bottomLoaderBar"></div>
+</div>
+
+<a href="https://neslicinar1150-lgtm.github.io/neseli-cinar-site" class="ana-sayfa-buton">
+🏠 Ana Sayfa
+</a>
+
+<h1>Arama Sonuçları</h1>
+<p id="bilgi"></p>
+<ul id="sonuclar"></ul>
+
+<form 
+  action="https://neslicinar1150-lgtm.github.io/neseli-cinar-site/cinarama2.html" 
+  method="GET"
+  class="sag-alt-arama"
+>
+  <input type="search" name="q" placeholder="Ara..." required>
+</form>
+
+<script>
+  let x = 0, y = 0;
+
+document.addEventListener("mousemove", e => {
+  x = e.clientX - 16;
+  y = e.clientY - 16;
+});
+
+function loop() {
+  c.style.left = x + "px";
+  c.style.top  = y + "px";
+  requestAnimationFrame(loop);
+}
+loop();
+
+  
+const size = 64;
+
+document.addEventListener("mousemove", e => {
+  c.style.left = (e.clientX - size / 2) + "px";
+  c.style.top  = (e.clientY - size / 2) + "px";
+});
+
+// URL'den arama kelimesi
+const params = new URLSearchParams(window.location.search);
+const query = params.get("q") || "";
+
+// Title + bilgi
+document.title = `"${query}" için arama sonuçları - ÇınArama`;
+document.getElementById("bilgi").textContent =
+  `"${query}" için sonuçlar:`;
+
+// JSON'dan sonuç çek
+fetch("arama.json")
+  .then(res => res.json())
+  .then(data => {
+    const liste = document.getElementById("sonuclar");
+
+    const sonuc = data.filter(item =>
+      item.baslik.toLowerCase().includes(query.toLowerCase()) ||
+      item.icerik.toLowerCase().includes(query.toLowerCase())
+    );
+
+    if (sonuc.length === 0) {
+      liste.innerHTML = "<li>Sonuç bulunamadı.</li>";
+      return;
+    }
+
+    sonuc.forEach(item => {
+      const li = document.createElement("li");
+      li.innerHTML = `<a href="${item.url}">${item.baslik}</a>`;
+      liste.appendChild(li);
+    });
+  })
+  .catch(() => {
+    document.getElementById("sonuclar").innerHTML =
+      "<li>Arama verisi yüklenemedi.</li>";
+  });
+
+// ALT YÜKLEME ANİMASYONU
+const loaderBar = document.getElementById("bottomLoaderBar");
+const loader = document.getElementById("bottomLoader");
+
+let progress = 0;
+const loadingInterval = setInterval(() => {
+  progress += Math.random() * 20;
+  if (progress >= 100) {
+    progress = 100;
+    clearInterval(loadingInterval);
+
+    setTimeout(() => {
+      loader.style.display = "none";
+    }, 400);
+  }
+  loaderBar.style.width = progress + "%";
+}, 200);
+</script>
+
+</body>
+</html>
+
+

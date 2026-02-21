@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="icon" href="/neseli-cinar-site/1A32B532-738D-4DD5-BA6B-80801E146D9B.png">
+<title>İstek ve Şikayetler</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background:#f2f2f2;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+#drop-area {
+    width: 350px;
+    height: 200px;
+    border: 3px dashed #3498db;
+    border-radius: 12px;
+    background: white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    font-size:18px;
+    color:#3498db;
+    cursor:pointer;
+    transition: 0.3s;
+}
+
+#drop-area.active {
+    background:#3498db;
+    color:white;
+    border-color:#2c3e50;
+}
+
+input {
+    display:none;
+}
+
+    /* ALT YÜKLEME ANİMASYONU */
+#bottomLoader {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 6px;
+  background: rgba(0,0,0,0.1);
+  z-index: 100000;
+}
+
+#bottomLoaderBar {
+  height: 100%;
+  width: 0%;
+  background: #00ff00;
+  transition: width 0.4s ease;
+}
+</style>
+<title>İstek ve Şikayetleriniz</title>
+</head>
+<body>
+    <!-- ALT YÜKLEME -->
+<div id="bottomLoader">
+  <div id="bottomLoaderBar"></div>
+</div>
+<form action="form.php">
+<div id="drop-area">
+    İstek ve Şikeyetlerinizi buraya atın. Ya da buraya tıklayın.
+</div>
+<input type="file" id="fileInput">
+<br>
+<br>
+<input type="file" id="fileInput"
+  accept=".jpg,.jpeg,.png,.heic,.docx,.txt">
+  <button type="submit" style="border-radius: 10px; background-color: grey; color: white;" action="istekvesikayetler.php">İstek ve Şikayetler bölümüne at</button>
+</form>
+<script>
+const dropArea = document.getElementById("drop-area");
+const fileInput = document.getElementById("fileInput");
+
+// İzin verilen uzantılar
+const allowedExtensions = ["jpg", "jpeg", "png", "heic", "docx", "txt"];
+
+// Tıklayınca dosya seç
+dropArea.addEventListener("click", () => {
+    fileInput.click();
+});
+
+// Sürükleme üstüne gelince
+dropArea.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dropArea.classList.add("active");
+    dropArea.innerText = "Bırak";
+});
+
+// Alandan çıkınca
+dropArea.addEventListener("dragleave", () => {
+    dropArea.classList.remove("active");
+    dropArea.innerText = "İstek ve Şikeyetlerinizi buraya atın. Ya da buraya tıklayın.";
+});
+
+// Bırakınca
+dropArea.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropArea.classList.remove("active");
+
+    const file = e.dataTransfer.files[0];
+    kontrolVeYukle(file);
+});
+
+// Manuel seçim
+fileInput.addEventListener("change", () => {
+    kontrolVeYukle(fileInput.files[0]);
+});
+
+// Dosya kontrol + yükleme
+function kontrolVeYukle(file) {
+    if (!file) return;
+
+    const uzanti = file.name.split('.').pop().toLowerCase();
+
+    if (!allowedExtensions.includes(uzanti)) {
+        dropArea.innerText = "❌ Geçersiz dosya türü";
+        setTimeout(() => {
+            dropArea.innerText = "İstek ve Şikeyetlerinizi buraya atın. Ya da buraya tıklayın.";
+        }, 2000);
+        return;
+    }
+
+    dropArea.innerText = ".    .    .   . . . ..Yükleniyor. Lütfen bu pencereden çıkmayın.... . . .  .  .  .   .   .";
+
+    let formData = new FormData();
+    formData.append("file", file);
+
+    fetch("upload.php", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.text())
+    .then(() => {
+        dropArea.innerText = "✔ Yüklendi";
+    })
+    .catch(() => {
+        dropArea.innerText = "❌ Hata oluştu";
+    });
+}
+
+    // ALT YÜKLEME ANİMASYONU
+const loaderBar = document.getElementById("bottomLoaderBar");
+const loader = document.getElementById("bottomLoader");
+
+let progress = 0;
+const loadingInterval = setInterval(() => {
+  progress += Math.random() * 20;
+  if (progress >= 100) {
+    progress = 100;
+    clearInterval(loadingInterval);
+
+    setTimeout(() => {
+      loader.style.display = "none";
+    }, 400);
+  }
+  loaderBar.style.width = progress + "%";
+}, 200);
+</script>
+</body>
+</html>

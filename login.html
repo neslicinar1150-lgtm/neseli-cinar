@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Çınar ile Giriş Yap</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&display=swap" rel="stylesheet">
+
+<style>
+#top-loader{
+  position:fixed;
+  top:0;
+  left:0;
+  height:4px;
+  width:0;
+  background:#00c853;
+  z-index:9999;
+  transition:width .3s ease, opacity .3s ease;
+}
+
+.fade{
+  opacity:0;
+  transform:translateX(15px);
+  transition:.3s ease;
+}
+.fade.show{
+  opacity:1;
+  transform:translateX(0);
+}p
+
+body{
+  margin:0;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#f6f9fc;
+  font-family:'Fredoka', sans-serif;
+}
+.form{
+  width:100%;
+  max-width:360px;
+  padding:30px;
+}
+input{
+  width:100%;
+  padding:14px;
+  margin-bottom:12px;
+  border-radius:10px;
+  border:1px solid #ccc;
+  font-size:15px;
+}
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:10px;
+  background:#00c853;
+  color:white;
+  font-size:16px;
+  cursor:pointer;
+}
+.links{
+  margin-top:15px;
+  text-align:center;
+  font-size:14px;
+}
+.links a{
+  color:#00c853;
+  text-decoration:none;
+}
+.links a:hover{
+  text-decoration:underline;
+}
+</style>
+</head>
+
+<body class="fade">
+  <div id="top-loader"></div>
+<div class="form">
+  <h2>Çınar ile giriş yap</h2>
+
+ <input id="email" placeholder="E-posta">
+<input id="password" type="password" placeholder="Şifre">
+<button onclick="login()" id="gonderBtn">Giriş Yap</button>
+
+  <div class="links">
+    <p>Zaten hesabın bu cihazda kayıtlı mı? O zaman <a href="accounts.html">bu cihazdaki hesaplar</a>a bakalım.<p>
+    <span>Hesabın yok mu?</span>
+    <a href="register.html">Hesap oluştur</a>
+  </div>
+</div>
+<script>
+document.addEventListener("keydown", function(e) {
+  if (e.key === "Enter") {
+    document.getElementById("gonderBtn").click();
+  }
+})
+  
+const loader = document.getElementById("top-loader");
+
+function startLoading(){
+  loader.style.opacity = 1;
+  loader.style.width = "30%";
+  setTimeout(()=>loader.style.width="65%",200);
+  setTimeout(()=>loader.style.width="85%",400);
+}
+
+function stopLoading(){
+  loader.style.width = "100%";
+  setTimeout(()=>{
+    loader.style.opacity = 0;
+    loader.style.width = "0";
+  },300);
+}
+
+// sayfa açılınca animasyon
+window.onload = ()=>{
+  document.body.classList.add("show");
+  stopLoading();
+};
+
+function go(page){
+  startLoading();
+  document.body.classList.remove("show");
+  setTimeout(()=>location.href=page,400);
+}
+</script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { 
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+/* 🔐 Firebase ayarların (AYNEN seninki) */
+const firebaseConfig = {
+  apiKey: "AIzaSyDrMzDc1CqCmAsFByYGsRr3itasWXWalNU",
+  authDomain: "hesap-3db5f.firebaseapp.com",
+  projectId: "hesap-3db5f",
+  storageBucket: "hesap-3db5f.firebasestorage.app",
+  messagingSenderId: "704840876083",
+  appId: "1:704840876083:web:c1395429c4aa2f60ad6346"
+};
+
+/* 🔥 Firebase başlat */
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+
+/* 👇 GİRİŞ */
+window.login = function(){
+  startLoading();
+
+  const email = document.getElementById("email").value;
+  const pass  = document.getElementById("password").value;
+
+  signInWithEmailAndPassword(auth, email, pass)
+    .then(()=>{
+      localStorage.setItem("user", email);
+      go("dashboard.html");
+    })
+    .catch(err=>{
+      alert("Giriş başarısız");
+      stopLoading();
+    });
+}
+
+/* 👇 KAYIT */
+window.register = function(){
+  startLoading();
+
+  const email = document.getElementById("email").value;
+  const pass  = document.getElementById("password").value;
+
+  createUserWithEmailAndPassword(auth, email, pass)
+    .then(()=>{
+      localStorage.setItem("user", email);
+      go("dashboard.html");
+    })
+    .catch(err=>{
+      alert(err.message);
+      stopLoading();
+    });
+}
+
+  function saveAccount(user){
+  let accounts = JSON.parse(localStorage.getItem("cinar_accounts")) || [];
+
+  // aynı hesap varsa ekleme
+  if(!accounts.find(a => a.uid === user.uid)){
+    accounts.push({
+      uid: user.uid,
+      email: user.email,
+      lastLogin: Date.now()
+    });
+  }
+
+  localStorage.setItem("cinar_accounts", JSON.stringify(accounts));
+}
+</script>
+</body>
+</html>

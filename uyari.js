@@ -1,0 +1,1 @@
+alert("Sayfada sıkıntı var. Yine de sayfa açılıyor.")

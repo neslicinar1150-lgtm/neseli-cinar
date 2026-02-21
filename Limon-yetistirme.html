@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Limon-yetistirme.pdf</title>
+
+<style>
+html,body{
+  margin:0;
+  height:100%;
+  overflow:hidden;
+  font-family:Arial;
+  background:#f1f1f1;
+}
+
+.navbar{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:55px;
+  background:#111;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:0 10px;
+  z-index:9999;
+}
+
+.viewer{
+  position:absolute;
+  top:55px;
+  bottom:0;
+  left:0;
+  right:0;
+  overflow:auto;
+  display:flex;
+  justify-content:center;
+}
+
+.pages{
+  position:relative;
+}
+
+.pages img{
+  width:800px;
+  display:block;
+  pointer-events:none;
+}
+
+canvas{
+  position:absolute;
+  left:0;
+  top:0;
+}
+
+#drawIndicator{
+  position:fixed;
+  bottom:15px;
+  left:15px;
+  background:red;
+  color:#fff;
+  padding:6px 10px;
+  border-radius:6px;
+  z-index:9999;
+}
+
+.modal{
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  background:#222;
+  color:white;
+  padding:20px;
+  border-radius:10px;
+  z-index:20000;
+  display:none;
+  width:300px;
+}
+
+.modal button{
+  padding:6px 10px;
+  margin:5px 0;
+  background:#444;
+  color:white;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+#colorPreview{
+  width:60px;
+  height:60px;
+  border-radius:8px;
+  border:2px solid white;
+  margin-top:10px;
+}
+</style>
+</head>
+<body>
+
+<div class="navbar">
+  <button onclick="location.href='https://neselicinar.com.tr'">X</button>
+  <b>Limon Yetiştirme.pdf</b>
+  <button onclick="toggleDraw()">Çizim</button>
+  <button onclick="openSettings()">Ayarlar</button>
+</div>
+
+<div class="viewer" id="viewer">
+  <div class="pages" id="pages">
+    <img src="Resimler/PDF-1-page.png">
+    <img src="Resimler/PDF-2-page.png">
+  </div>
+</div>
+
+<div id="drawIndicator">Çizim Kapalı</div>
+
+<div id="settingsModal" class="modal">
+
+<h3>Ayarlar</h3>
+
+<h4>🎨 Renk</h4>
+
+R <input type="range" min="0" max="255" id="rRange"><br>
+<input type="number" min="0" max="255" id="rNumber"><br>
+
+G <input type="range" min="0" max="255" id="gRange"><br>
+<input type="number" min="0" max="255" id="gNumber"><br>
+
+B <input type="range" min="0" max="255" id="bRange"><br>
+<input type="number" min="0" max="255" id="bNumber"><br>
+
+<div id="colorPreview"></div>
+
+<hr>
+
+<h4>⌨ Tuş Atama</h4>
+
+<button id="eraserBtn">Silgi: F2</button>
+<button id="colorBtn">Ayarlar: Tab</button>
+
+<br>
+<button onclick="closeSettings()">Kapat</button>
+
+</div>
+
+<script>
+
+/* AUTH CHECK */
+if(!localStorage.getItem("user")){
+ location.href="https://neselicinar.com.tr/giris";
+}
+
+/* ===== DRAW SYSTEM ===== */
+
+const pages=document.getElementById("pages");
+const viewer=document.getElementById("viewer");
+const indicator=document.getElementById("drawIndicator");
+
+let canvas=document.createElement("canvas");
+canvas.style.position="absolute";
+canvas.style.left=0;
+canvas.style.top=0;
+pages.appendChild(canvas);
+
+let ctx=canvas.getContext("2d");
+
+function resize(){
+ canvas.width=pages.offsetWidth;
+ canvas.height=pages.offsetHeight;
+}
+resize();
+window.addEventListener("resize",resize);
+
+let drawing=false;
+let drawingMode=false;
+let eraser=false;
+let posX=0,posY=0;
+let brushSize=4;
+let color="rgb(255,0,0)";
+
+/* DRAW TOGGLE */
+function toggleDraw(){
+ drawingMode=!drawingMode;
+ indicator.textContent=drawingMode?"Çizim Açık":"Çizim Kapalı";
+ indicator.style.background=drawingMode?"green":"red";
+  updateTouchMode();
+}
+
+/* DESKTOP DRAW */
+viewer.addEventListener("mousedown",e=>{
+ if(!drawingMode) return;
+ drawing=true;
+ let rect=canvas.getBoundingClientRect();
+ posX=e.clientX-rect.left;
+ posY=e.clientY-rect.top;
+ ctx.beginPath();
+ ctx.moveTo(posX,posY);
+});
+
+viewer.addEventListener("mousemove",e=>{
+ if(!drawingMode || !drawing) return;
+ let rect=canvas.getBoundingClientRect();
+ posX=e.clientX-rect.left;
+ posY=e.clientY-rect.top;
+ ctx.lineCap="round";
+ ctx.lineJoin="round";
+ ctx.strokeStyle=eraser?"white":color;
+ ctx.lineWidth=brushSize;
+ ctx.lineTo(posX,posY);
+ ctx.stroke();
+});
+
+viewer.addEventListener("mouseup",()=>{
+ drawing=false;
+ ctx.beginPath();
+});
+
+/* ===== SETTINGS SYSTEM ===== */
+
+function openSettings(){
+ document.getElementById("settingsModal").style.display="block";
+}
+
+function closeSettings(){
+ document.getElementById("settingsModal").style.display="none";
+}
+
+/* COLOR SYSTEM */
+
+const rRange=document.getElementById("rRange");
+const gRange=document.getElementById("gRange");
+const bRange=document.getElementById("bRange");
+
+const rNumber=document.getElementById("rNumber");
+const gNumber=document.getElementById("gNumber");
+const bNumber=document.getElementById("bNumber");
+
+const preview=document.getElementById("colorPreview");
+
+function updateColor(){
+ let r=parseInt(rRange.value||0);
+ let g=parseInt(gRange.value||0);
+ let b=parseInt(bRange.value||0);
+
+ rNumber.value=r;
+ gNumber.value=g;
+ bNumber.value=b;
+
+ color=`rgb(${KIRMIZI},${YEŞİL},${MAVİ})`;
+ preview.style.background=color;
+
+ saveSettings();
+}
+
+function syncFromNumber(){
+ rRange.value=rNumber.value;
+ gRange.value=gNumber.value;
+ bRange.value=bNumber.value;
+ updateColor();
+}
+
+[rRange,gRange,bRange].forEach(el=>{
+ el.addEventListener("input",updateColor);
+});
+
+[rNumber,gNumber,bNumber].forEach(el=>{
+ el.addEventListener("input",syncFromNumber);
+});
+
+/* ===== KEYBIND SYSTEM ===== */
+
+let eraserShortcut="F2";
+let colorShortcut="Tab";
+let waitingFor=null;
+
+const eraserBtn=document.getElementById("eraserBtn");
+const colorBtn=document.getElementById("colorBtn");
+
+eraserBtn.onclick=()=>{
+ waitingFor="eraser";
+ eraserBtn.textContent="Tuşa bas...";
+};
+
+colorBtn.onclick=()=>{
+ waitingFor="color";
+ colorBtn.textContent="Tuşa bas...";
+};
+
+document.addEventListener("keydown",e=>{
+
+ if(document.activeElement.tagName==="INPUT") return;
+
+ let combo="";
+ if(e.ctrlKey) combo+="Ctrl+";
+ if(e.shiftKey) combo+="Shift+";
+ if(e.altKey) combo+="Alt+";
+ combo+=e.key;
+
+ if(waitingFor){
+  if(waitingFor==="eraser"){
+   eraserShortcut=combo;
+   eraserBtn.textContent="Silgi: "+combo;
+  }
+  if(waitingFor==="color"){
+   colorShortcut=combo;
+   colorBtn.textContent="Renk: "+combo;
+  }
+  waitingFor=null;
+  saveSettings();
+  return;
+ }
+
+ if(combo===eraserShortcut){
+  eraser=!eraser;
+ }
+
+ if(combo===colorShortcut){
+  openSettings();
+ }
+
+});
+
+/* ===== LOCAL STORAGE SAVE ===== */
+
+function saveSettings(){
+ let data={
+  r:rRange.value,
+  g:gRange.value,
+  b:bRange.value,
+  eraser:eraserShortcut,
+  color:colorShortcut
+ };
+ localStorage.setItem("pdfSettings",JSON.stringify(data));
+}
+
+function loadSettings(){
+ let data=JSON.parse(localStorage.getItem("pdfSettings"));
+ if(!data) return;
+
+ rRange.value=data.r;
+ gRange.value=data.g;
+ bRange.value=data.b;
+ eraserShortcut=data.eraser;
+ colorShortcut=data.color;
+
+ eraserBtn.textContent="Silgi: "+eraserShortcut;
+ colorBtn.textContent="Renk: "+colorShortcut;
+
+ updateColor();
+}
+
+loadSettings();
+updateColor();
+
+  function updateTouchMode(){
+ if(drawingMode){
+  viewer.style.overflow="hidden";
+ }else{
+  viewer.style.overflow="auto";
+ }
+}
+
+  /* ===== MOBILE DRAW FIXED ===== */
+
+canvas.addEventListener("touchstart", function(e){
+ if(!drawingMode) return;
+
+ drawing = true;
+
+ const rect = canvas.getBoundingClientRect();
+ posX = e.touches[0].clientX - rect.left;
+ posY = e.touches[0].clientY - rect.top;
+
+ ctx.beginPath();
+ ctx.moveTo(posX, posY);
+}, {passive:true});
+
+
+canvas.addEventListener("touchmove", function(e){
+ if(!drawingMode || !drawing) return;
+
+ const rect = canvas.getBoundingClientRect();
+ posX = e.touches[0].clientX - rect.left;
+ posY = e.touches[0].clientY - rect.top;
+
+ ctx.lineCap="round";
+ ctx.lineJoin="round";
+ ctx.strokeStyle = eraser ? "white" : color;
+ ctx.lineWidth = brushSize;
+
+ ctx.lineTo(posX, posY);
+ ctx.stroke();
+}, {passive:true});
+
+
+canvas.addEventListener("touchend", function(){
+ drawing = false;
+ ctx.beginPath();
+});
+</script>
+</body>
+</html>
