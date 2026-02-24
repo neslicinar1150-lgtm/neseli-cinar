@@ -138,7 +138,14 @@ html, body, * { cursor:none !important; }
 </head>
 
 <body oncontextmenu="return false;">
-
+<div style="position:fixed;top:15px;right:15px;z-index:9999;">
+<select onchange="changeLang(this.value)" 
+style="padding:8px 14px;border-radius:20px;border:none;background:#ff3b3b;color:white;font-weight:bold;">
+  <option value="tr">🇹🇷 Türkçe</option>
+  <option value="en">🇬🇧 English</option>
+  <option value="ar">🇸🇦 العربية</option>
+</select>
+</div>
 <img id="neseliCursor"
 src="https://neselicinar.com.tr/Resimler/mouse-cinar.png">
 
