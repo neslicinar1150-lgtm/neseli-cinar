@@ -1,8 +1,4 @@
 <?php
-file_put_contents(
-"deprem_log.txt",
-date("d.m.Y H:i:s")." Deprem Alarmı Test Projesi\n",
-FILE_APPEND
-);
+file_put_contents("deprem.txt", "DEPREM " . date("H:i:s") . "\n", FILE_APPEND);
 echo "OK";
 ?>
