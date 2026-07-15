@@ -1,0 +1,59 @@
+<html>
+<body>
+import cv2
+from cvzone.HandTrackingModule import HandDetector
+
+# Kamera
+cap = cv2.VideoCapture(0)
+
+# El algılayıcı
+detector = HandDetector(
+    maxHands=1,
+    detectionCon=0.8
+)
+
+while True:
+
+    success, img = cap.read()
+
+    if not success:
+        break
+
+    # Aynaya benzesin
+    img = cv2.flip(img, 1)
+
+    # Eli algıla
+    hands, img = detector.findHands(img)
+
+    # El bulunduysa
+    if hands:
+
+        hand = hands[0]
+
+        lmList = hand["lmList"]
+
+        # İşaret parmağı ucu
+        x, y, z = lmList[8]
+
+        # Kırmızı nokta çiz
+        cv2.circle(img, (x, y), 12, (0, 0, 255), cv2.FILLED)
+
+        cv2.putText(
+            img,
+            f"({x},{y})",
+            (x + 15, y),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.6,
+            (255,255,255),
+            2
+        )
+
+    cv2.imshow("Musti Motion Maker - Hand Tracking", img)
+
+    if cv2.waitKey(1) == 27:
+        break
+
+cap.release()
+cv2.destroyAllWindows()
+</body>
+</html>
