@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#080d18">
+<title>Masa Saati</title>
+<style>
+:root{color-scheme:dark;--bg:#080d18;--panel:#121b2c;--muted:#9aa9c2;--accent:#9ed7ff}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;background:var(--bg);color:#f4f7ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{min-height:100dvh;overflow:hidden}
+main{min-height:100dvh;padding:clamp(18px,4vw,48px);padding-top:max(18px,env(safe-area-inset-top));padding-bottom:max(18px,env(safe-area-inset-bottom));display:grid;grid-template-rows:1fr auto;gap:24px}
+.top{display:grid;grid-template-columns:1.5fr 1fr;gap:clamp(16px,3vw,40px);align-items:center;min-height:0}
+.clock-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.time{font-size:clamp(76px,16vw,210px);font-weight:200;letter-spacing:-.075em;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.seconds{font-size:.32em;color:var(--accent);letter-spacing:-.03em;margin-left:.12em}
+.date{font-size:clamp(18px,2.5vw,32px);color:var(--muted);margin-top:22px;text-transform:capitalize}
+.greeting{font-size:clamp(13px,1.5vw,18px);color:#71819c;margin-top:12px}
+.calendar{background:var(--panel);border:1px solid #253149;border-radius:24px;padding:clamp(16px,2.5vw,28px);width:100%;max-width:560px;justify-self:center}
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.month{font-size:clamp(20px,2.3vw,28px);font-weight:600;text-transform:capitalize}
+.nav{display:flex;gap:8px}
+button{border:1px solid #34435d;background:#1b2940;color:#eaf4ff;border-radius:12px;padding:9px 13px;font-size:18px}
+.week,.days{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;gap:5px}
+.week span{font-size:12px;color:var(--muted);padding:8px 0}
+.day{aspect-ratio:1;display:grid;place-items:center;border-radius:50%;font-size:clamp(13px,1.5vw,18px);font-variant-numeric:tabular-nums}
+.day.today{background:var(--accent);color:#07111d;font-weight:700}
+.day.empty{visibility:hidden}
+.bottom{display:flex;justify-content:space-between;align-items:end;color:#71819c;font-size:13px;gap:12px}
+.controls{display:flex;gap:8px;align-items:center}
+.controls button{font-size:13px;padding:8px 12px}
+@media(max-width:700px){main{padding:18px;grid-template-rows:auto 1fr auto}.top{grid-template-columns:1fr;align-content:center;gap:28px}.time{font-size:clamp(68px,18vw,130px)}.calendar{max-width:440px}.date{margin-top:12px}.greeting{margin-top:6px}.bottom{align-items:center}}
+@media(orientation:portrait) and (min-width:701px){.top{grid-template-columns:1fr}.calendar{max-width:560px}}
+</style>
+</head>
+<body>
+<main>
+  <section class="top">
+    <div class="clock-wrap">
+      <div class="time"><span id="hours">00</span>:<span id="minutes">00</span><span class="seconds">:<span id="seconds">00</span></span></div>
+      <div class="date" id="date"></div>
+      <div class="greeting" id="greeting">İyi günler</div>
+    </div>
+    <section class="calendar" aria-label="Aylık takvim">
+      <div class="cal-head">
+        <div class="month" id="month"></div>
+        <div class="nav"><button id="prev" aria-label="Önceki ay">‹</button><button id="next" aria-label="Sonraki ay">›</button></div>
+      </div>
+      <div class="week"><span>Pzt</span><span>Sal</span><span>Çar</span><span>Per</span><span>Cum</span><span>Cmt</span><span>Paz</span></div>
+      <div class="days" id="days"></div>
+    </section>
+  </section>
+  <footer class="bottom">
+    <span>Yerel saat • Otomatik güncellenir</span>
+    <div class="controls"><button id="fullscreen">Tam ekran</button><button id="reset">Bugün</button></div>
+  </footer>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const months=["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+const weekdays=["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"];
+let shown=new Date(); shown=new Date(shown.getFullYear(),shown.getMonth(),1);
+function tick(){
+ const n=new Date();
+ $("hours").textContent=String(n.getHours()).padStart(2,"0");
+ $("minutes").textContent=String(n.getMinutes()).padStart(2,"0");
+ $("seconds").textContent=String(n.getSeconds()).padStart(2,"0");
+ $("date").textContent=`${weekdays[(n.getDay()+6)%7]}, ${n.getDate()} ${months[n.getMonth()]} ${n.getFullYear()}`;
+ $("greeting").textContent=n.getHours()<6?"İyi geceler":n.getHours()<12?"Günaydın":n.getHours()<18?"İyi günler":"İyi akşamlar";
+}
+function renderCalendar(){
+ const now=new Date(), y=shown.getFullYear(), m=shown.getMonth();
+ $("month").textContent=`${months[m]} ${y}`;
+ const offset=(new Date(y,m,1).getDay()+6)%7, count=new Date(y,m+1,0).getDate();
+ let out="";
+ for(let i=0;i<offset;i++)out+='<div class="day empty"></div>';
+ for(let d=1;d<=count;d++){
+  const today=d===now.getDate()&&m===now.getMonth()&&y===now.getFullYear();
+  out+=`<div class="day${today?" today":""}">${d}</div>`;
+ }
+ $("days").innerHTML=out;
+}
+$("prev").onclick=()=>{shown.setMonth(shown.getMonth()-1);renderCalendar()};
+$("next").onclick=()=>{shown.setMonth(shown.getMonth()+1);renderCalendar()};
+$("reset").onclick=()=>{const n=new Date();shown=new Date(n.getFullYear(),n.getMonth(),1);renderCalendar()};
+$("fullscreen").onclick=async()=>{
+ try{if(!document.fullscreenElement&&document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();else if(document.exitFullscreen)await document.exitFullscreen();}
+ catch(e){alert("Safari bu sayfada tam ekranı desteklemeyebilir. Ana Ekran'a ekleyerek açmayı deneyin.")};
+};
+tick();renderCalendar();setInterval(tick,1000);
+</script>
+</body>
+</html>
