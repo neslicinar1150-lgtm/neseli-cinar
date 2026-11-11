@@ -104,26 +104,28 @@ function animate() {
 }
 animate();
 
+
 function handleOrientation(e) {
   if (e.gamma === null || e.beta === null) return;
 
   const x = clamp(e.gamma / 35, -1, 1);
   const y = clamp((e.beta - 45) / 35, -1, 1);
 
-  // Hareket yönünde uzama
+  // Ters yönde uzama
   tx = 1 + Math.abs(x) * 0.20;
   ty = 1 + Math.abs(y) * 0.20;
 
-  // Uzama karşı kenardan başlasın
-  const originX = x > 0 ? "left" : "right";
-  const originY = y > 0 ? "top" : "bottom";
+  // Uzama yönü tersine çevrildi
+  const originX = x > 0 ? "right" : "left";
+  const originY = y > 0 ? "bottom" : "top";
 
   page.style.transformOrigin =
     `${originX} ${originY}`;
 
-  targetX = x * 12;
-  targetY = y * 12;
+  targetX = -x * 12;
+  targetY = -y * 12;
 }
+
 
 async function startSensors() {
   try {
