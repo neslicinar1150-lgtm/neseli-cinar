@@ -4,112 +4,252 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Duo Motion</title>
+<title>Duo Parallax Lock Screen</title>
 <style>
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
+  height: 100dvh;
   overflow: hidden;
-  background: #080d19;
-  color: white;
-  font-family: Arial;
+  background: #111;
+  display: grid;
+  place-items: center;
+  font-family: Arial, sans-serif;
 }
 
-#page {
+.phone {
+  position: relative;
+  width: min(92vw, 390px);
+  height: min(90dvh, 780px);
+  overflow: hidden;
+  border: 5px solid #333b43;
+  border-radius: 38px;
+  background: #b9b1a0;
+  isolation: isolate;
+}
+
+.wallpaper {
   position: absolute;
-  inset: -35px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background:
-    radial-gradient(circle at 30% 30%, #234a79, transparent 45%),
-    radial-gradient(circle at 75% 75%, #46245f, transparent 45%),
-    #080d19;
+  inset: -45px;
+  overflow: hidden;
   will-change: transform;
 }
 
-h1 {
-  font-size: 45px;
-  font-weight: 300;
-  letter-spacing: 8px;
+.sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    #8297a5 0%,
+    #d3c5aa 40%,
+    #b6a48a 55%,
+    #776b5d 100%
+  );
 }
 
-p {
-  font-size: 17px;
-  color: #b5c8e9;
+.sunlight {
+  position: absolute;
+  width: 100%;
+  height: 60%;
+  top: 5%;
+  background: radial-gradient(
+    ellipse,
+    #fff0d0aa,
+    transparent 65%
+  );
 }
 
-.glow {
-  width: 190px;
-  height: 190px;
+.mountain-back {
+  position: absolute;
+  top: 32%;
+  left: -15%;
+  width: 130%;
+  height: 48%;
+  background: #777267;
+  clip-path: polygon(
+    0 65%, 20% 35%, 38% 55%,
+    58% 15%, 75% 52%, 100% 30%,
+    100% 100%, 0 100%
+  );
+}
+
+.mountain-front {
+  position: absolute;
+  top: 48%;
+  left: -15%;
+  width: 130%;
+  height: 55%;
+  background: linear-gradient(160deg,#49443e,#282725);
+  clip-path: polygon(
+    0 5%, 30% 30%, 55% 22%,
+    100% 40%, 100% 100%, 0 100%
+  );
+}
+
+.sand {
+  position: absolute;
+  top: 68%;
+  left: -15%;
+  width: 130%;
+  height: 50%;
+  background: linear-gradient(160deg,#d0bda1,#93816a);
+  clip-path: polygon(
+    0 0, 35% 23%, 65% 15%,
+    100% 30%, 100% 100%, 0 100%
+  );
+}
+
+.content {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  color: white;
+  text-align: center;
+}
+
+.camera {
+  position: absolute;
+  top: 12px;
+  right: 18px;
+  width: 13px;
+  height: 13px;
+  background: #080b10;
   border-radius: 50%;
-  background: radial-gradient(circle, #75caff, #6545b5, transparent 70%);
-  filter: blur(5px);
-  margin: 25px;
+}
+
+.date {
+  margin-top: 90px;
+  font-size: 14px;
+  text-shadow: 0 2px 8px #333;
+}
+
+.clock {
+  margin-top: 0;
+  font-size: clamp(65px, 18vw, 90px);
+  font-weight: 300;
+  letter-spacing: -5px;
+  text-shadow: 0 3px 15px #4447;
+}
+
+.bottom {
+  position: absolute;
+  bottom: 25px;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  font-size: 25px;
+}
+
+.hint {
+  position: absolute;
+  bottom: 9px;
+  width: 100%;
+  text-align: center;
+  height: 4px;
+  background: white;
+  border-radius: 5px;
+  width: 35%;
+  left: 32.5%;
+}
+
+.controls {
+  position: fixed;
+  bottom: 5px;
+  display: flex;
+  gap: 10px;
 }
 
 button {
-  background: #315c91;
-  color: white;
+  padding: 12px 18px;
   border: 0;
-  padding: 15px 25px;
-  border-radius: 30px;
-  font-size: 16px;
+  border-radius: 25px;
+  background: #345b8a;
+  color: white;
 }
 </style>
 </head>
 
 <body>
 
-<div id="page">
-  <h1>DUO</h1>
-  <div class="glow"></div>
-  <p>Move your iPhone</p>
-  <button onclick="startSensors()">Başlat</button>
+<div class="phone">
+
+  <div class="wallpaper" id="wallpaper">
+    <div class="sky"></div>
+    <div class="sunlight"></div>
+    <div class="mountain-back"></div>
+    <div class="mountain-front"></div>
+    <div class="sand"></div>
+  </div>
+
+  <div class="content">
+    <div class="camera"></div>
+    <div class="date">Çarşamba, 11 Kasım</div>
+    <div class="clock">9:41</div>
+
+    <div class="bottom">
+      <span>◉</span>
+      <span>⌁</span>
+    </div>
+    <div class="hint"></div>
+  </div>
+
+</div>
+
+<div class="controls">
+  <button onclick="startMotion()">Sensörü Aç</button>
+  <button onclick="resetMotion()">Sıfırla</button>
 </div>
 
 <script>
-const page = document.getElementById("page");
+const wallpaper = document.getElementById("wallpaper");
 
 let x = 0, y = 0;
-let targetX = 0, targetY = 0;
+let tx = 0, ty = 0;
+let active = false;
 
 function animate() {
-  x += (targetX - x) * 0.09;
-  y += (targetY - y) * 0.09;
+  x += (tx - x) * 0.08;
+  y += (ty - y) * 0.08;
 
-  page.style.transform =
-    `translate3d(${x}px, ${y}px, 0)`;
+  wallpaper.style.transform =
+    `translate3d(${x}px, ${y}px, 0) scale(1.04)`;
 
   requestAnimationFrame(animate);
 }
-
 animate();
 
-async function startSensors() {
+async function startMotion() {
   try {
     if (
       typeof DeviceOrientationEvent !== "undefined" &&
       typeof DeviceOrientationEvent.requestPermission === "function"
     ) {
-      const result =
+      const permission =
         await DeviceOrientationEvent.requestPermission();
 
-      if (result !== "granted") return;
+      if (permission !== "granted") return;
     }
 
-    window.addEventListener("deviceorientation", (e) => {
-      if (e.gamma === null || e.beta === null) return;
-
-      targetX = Math.max(-35, Math.min(35, e.gamma * 1.5));
-      targetY = Math.max(-35, Math.min(35, (e.beta - 45) * 1.2));
-    });
-
-  } catch (error) {
-    alert("Sensör erişimi sağlanamadı.");
+    if (!active) {
+      window.addEventListener("deviceorientation", move);
+      active = true;
+    }
+  } catch(e) {
+    alert("Sensör erişimi başarısız.");
   }
+}
+
+function move(e) {
+  if (e.gamma === null || e.beta === null) return;
+
+  tx = Math.max(-25, Math.min(25, -e.gamma * 0.8));
+  ty = Math.max(-25, Math.min(25, -(e.beta - 45) * 0.6));
+}
+
+function resetMotion() {
+  tx = 0;
+  ty = 0;
 }
 </script>
 
