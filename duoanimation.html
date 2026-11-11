@@ -4,222 +4,145 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Duo Parallax Lock Screen</title>
-<style>
-* { box-sizing: border-box; }
+<title>Duo Motion Effect</title>
 
-body {
+<style>
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
   margin: 0;
-  height: 100dvh;
   overflow: hidden;
-  background: #111;
-  display: grid;
-  place-items: center;
+  background: #111827;
   font-family: Arial, sans-serif;
 }
 
-.phone {
-  position: relative;
-  width: min(92vw, 390px);
-  height: min(90dvh, 780px);
-  overflow: hidden;
-  border: 5px solid #333b43;
-  border-radius: 38px;
-  background: #b9b1a0;
-  isolation: isolate;
-}
-
-.wallpaper {
+#page {
   position: absolute;
-  inset: -45px;
-  overflow: hidden;
+  inset: -70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background:
+    radial-gradient(circle at 20% 20%, #6688a0, transparent 45%),
+    radial-gradient(circle at 80% 80%, #80628b, transparent 45%),
+    linear-gradient(145deg, #34465c, #111827);
   will-change: transform;
 }
 
-.sky {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    #8297a5 0%,
-    #d3c5aa 40%,
-    #b6a48a 55%,
-    #776b5d 100%
-  );
-}
-
-.sunlight {
-  position: absolute;
-  width: 100%;
-  height: 60%;
-  top: 5%;
-  background: radial-gradient(
-    ellipse,
-    #fff0d0aa,
-    transparent 65%
-  );
-}
-
-.mountain-back {
-  position: absolute;
-  top: 32%;
-  left: -15%;
-  width: 130%;
-  height: 48%;
-  background: #777267;
-  clip-path: polygon(
-    0 65%, 20% 35%, 38% 55%,
-    58% 15%, 75% 52%, 100% 30%,
-    100% 100%, 0 100%
-  );
-}
-
-.mountain-front {
-  position: absolute;
-  top: 48%;
-  left: -15%;
-  width: 130%;
-  height: 55%;
-  background: linear-gradient(160deg,#49443e,#282725);
-  clip-path: polygon(
-    0 5%, 30% 30%, 55% 22%,
-    100% 40%, 100% 100%, 0 100%
-  );
-}
-
-.sand {
-  position: absolute;
-  top: 68%;
-  left: -15%;
-  width: 130%;
-  height: 50%;
-  background: linear-gradient(160deg,#d0bda1,#93816a);
-  clip-path: polygon(
-    0 0, 35% 23%, 65% 15%,
-    100% 30%, 100% 100%, 0 100%
-  );
-}
-
-.content {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  color: white;
-  text-align: center;
-}
-
-.camera {
-  position: absolute;
-  top: 12px;
-  right: 18px;
-  width: 13px;
-  height: 13px;
-  background: #080b10;
-  border-radius: 50%;
-}
-
-.date {
-  margin-top: 90px;
-  font-size: 14px;
-  text-shadow: 0 2px 8px #333;
-}
-
-.clock {
-  margin-top: 0;
-  font-size: clamp(65px, 18vw, 90px);
+h1 {
+  font-size: 65px;
   font-weight: 300;
-  letter-spacing: -5px;
-  text-shadow: 0 3px 15px #4447;
+  letter-spacing: 10px;
+  color: white;
 }
 
-.bottom {
-  position: absolute;
-  bottom: 25px;
-  width: 100%;
+p {
+  color: #d8e4f1;
+  font-size: 18px;
+}
+
+.card {
+  width: 240px;
+  height: 300px;
+  border-radius: 25px;
+  background: linear-gradient(145deg, #d7c6a5, #495d76);
+  box-shadow: 0 20px 60px #0008;
   display: flex;
-  justify-content: space-around;
-  font-size: 25px;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 35px;
 }
 
-.hint {
-  position: absolute;
-  bottom: 9px;
-  width: 100%;
-  text-align: center;
-  height: 4px;
-  background: white;
-  border-radius: 5px;
-  width: 35%;
-  left: 32.5%;
-}
-
-.controls {
+#status {
   position: fixed;
-  bottom: 5px;
-  display: flex;
-  gap: 10px;
+  bottom: 25px;
+  color: white;
+  z-index: 10;
 }
 
 button {
-  padding: 12px 18px;
+  position: fixed;
+  top: 20px;
+  z-index: 20;
+  padding: 14px 24px;
   border: 0;
-  border-radius: 25px;
-  background: #345b8a;
+  border-radius: 30px;
+  background: #3879c9;
   color: white;
+  font-size: 16px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="phone">
+<button onclick="startSensors()">Duo Efektini Başlat</button>
 
-  <div class="wallpaper" id="wallpaper">
-    <div class="sky"></div>
-    <div class="sunlight"></div>
-    <div class="mountain-back"></div>
-    <div class="mountain-front"></div>
-    <div class="sand"></div>
-  </div>
-
-  <div class="content">
-    <div class="camera"></div>
-    <div class="date">Çarşamba, 11 Kasım</div>
-    <div class="clock">9:41</div>
-
-    <div class="bottom">
-      <span>◉</span>
-      <span>⌁</span>
-    </div>
-    <div class="hint"></div>
-  </div>
-
+<div id="page">
+  <h1>DUO</h1>
+  <div class="card">9:41</div>
+  <p>Hareketi hisset.</p>
 </div>
 
-<div class="controls">
-  <button onclick="startMotion()">Sensörü Aç</button>
-  <button onclick="resetMotion()">Sıfırla</button>
-</div>
+<div id="status">Sensör bekleniyor...</div>
 
 <script>
-const wallpaper = document.getElementById("wallpaper");
+const page = document.getElementById("page");
+const statusText = document.getElementById("status");
 
-let x = 0, y = 0;
-let tx = 0, ty = 0;
-let active = false;
+let currentX = 0;
+let targetX = 0;
+let currentY = 0;
+let targetY = 0;
 
+const maxMove = 65;
+const sensitivity = 2;
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+// Yumuşak animasyon
 function animate() {
-  x += (tx - x) * 0.08;
-  y += (ty - y) * 0.08;
+  currentX += (targetX - currentX) * 0.12;
+  currentY += (targetY - currentY) * 0.12;
 
-  wallpaper.style.transform =
-    `translate3d(${x}px, ${y}px, 0) scale(1.04)`;
+  page.style.transform =
+    `translate3d(${currentX}px, ${currentY}px, 0)`;
 
   requestAnimationFrame(animate);
 }
+
 animate();
 
-async function startMotion() {
+// Telefon sensörleri
+function handleMotion(event) {
+  if (event.gamma === null) return;
+
+  // Sola eğilince sayfa sağa gider
+  targetX = clamp(
+    -event.gamma * sensitivity,
+    -maxMove,
+    maxMove
+  );
+
+  // Öne ve arkaya eğilme
+  if (event.beta !== null) {
+    targetY = clamp(
+      -(event.beta - 45) * 1.5,
+      -maxMove,
+      maxMove
+    );
+  }
+}
+
+async function startSensors() {
   try {
     if (
       typeof DeviceOrientationEvent !== "undefined" &&
@@ -228,28 +151,22 @@ async function startMotion() {
       const permission =
         await DeviceOrientationEvent.requestPermission();
 
-      if (permission !== "granted") return;
+      if (permission !== "granted") {
+        statusText.textContent = "Sensör izni verilmedi.";
+        return;
+      }
     }
 
-    if (!active) {
-      window.addEventListener("deviceorientation", move);
-      active = true;
-    }
-  } catch(e) {
-    alert("Sensör erişimi başarısız.");
+    window.addEventListener(
+      "deviceorientation",
+      handleMotion
+    );
+
+    statusText.textContent = "Duo efekti aktif!";
+  } catch (error) {
+    statusText.textContent =
+      "Sensör erişimi başarısız. HTTPS gerekli olabilir.";
   }
-}
-
-function move(e) {
-  if (e.gamma === null || e.beta === null) return;
-
-  tx = Math.max(-25, Math.min(25, -e.gamma * 0.8));
-  ty = Math.max(-25, Math.min(25, -(e.beta - 45) * 0.6));
-}
-
-function resetMotion() {
-  tx = 0;
-  ty = 0;
 }
 </script>
 
