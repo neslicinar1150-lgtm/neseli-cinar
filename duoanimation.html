@@ -54,7 +54,7 @@ p { font-size: 18px; }
 
 button {
   position: fixed;
-  z-index: 5;
+  z-index: 10;
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
@@ -63,6 +63,32 @@ button {
   border-radius: 30px;
   color: white;
   background: #397bc5;
+}
+
+/* Üst ve alt kararma */
+#shade {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: var(--darkness, 0);
+  background: linear-gradient(
+    to bottom,
+    #050914 0%,
+    transparent var(--edge, 23%),
+    transparent calc(100% - var(--edge, 23%)),
+    #050914 100%
+  );
+}
+
+/* Ayrışan pikseller */
+#pixels {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 4;
+  pointer-events: none;
 }
 </style>
 </head>
@@ -79,8 +105,14 @@ Duo Efektini Başlat
   <p>Dynamic Stretch</p>
 </div>
 
+<div id="shade"></div>
+<canvas id="pixels"></canvas>
+
 <script>
 const page = document.getElementById("page");
+const shade = document.getElementById("shade");
+const canvas = document.getElementById("pixels");
+const ctx = canvas.getContext("2d");
 
 let sx = 1, sy = 1;
 let tx = 1, ty = 1;
@@ -88,14 +120,84 @@ let tx = 1, ty = 1;
 let moveX = 0, moveY = 0;
 let targetX = 0, targetY = 0;
 
-// Butona basıldığı andaki başlangıç açısı
 let baseGamma = null;
 let baseBeta = null;
 
 let started = false;
+let intensity = 0;
+let targetIntensity = 0;
+
+let pixelList = [];
 
 function clamp(v, min, max) {
   return Math.max(min, Math.min(max, v));
+}
+
+function resizeCanvas() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  canvas.width = innerWidth * dpr;
+  canvas.height = innerHeight * dpr;
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  createPixels();
+}
+
+function createPixels() {
+  pixelList = [];
+
+  // Kenarlarda ve ekranın bazı bölgelerinde küçük pikseller
+  for (let i = 0; i < 100; i++) {
+    const edge = Math.random();
+
+    let y;
+
+    if (edge < 0.4) {
+      y = Math.random() * innerHeight * 0.22;
+    } else if (edge < 0.8) {
+      y = innerHeight * 0.78 +
+          Math.random() * innerHeight * 0.22;
+    } else {
+      y = Math.random() * innerHeight;
+    }
+
+    pixelList.push({
+      x: Math.random() * innerWidth,
+      y: y,
+      size: 2 + Math.random() * 5,
+      power: 0.4 + Math.random() * 0.6,
+      side: Math.random() < 0.5 ? -1 : 1
+    });
+  }
+}
+
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+function drawPixels() {
+  ctx.clearRect(0, 0, innerWidth, innerHeight);
+
+  if (intensity < 0.01) return;
+
+  pixelList.forEach(pixel => {
+    const alpha = intensity * pixel.power * 0.65;
+
+    const offsetX =
+      pixel.side * moveX * 0.7 * pixel.power * 2;
+
+    const offsetY =
+      moveY * 0.7 * pixel.power * 2;
+
+    ctx.fillStyle = `rgba(190,220,255,${alpha})`;
+
+    ctx.fillRect(
+      pixel.x + offsetX,
+      pixel.y + offsetY,
+      pixel.size,
+      pixel.size
+    );
+  });
 }
 
 function animate() {
@@ -105,8 +207,24 @@ function animate() {
   moveX += (targetX - moveX) * 0.12;
   moveY += (targetY - moveY) * 0.12;
 
+  intensity += (targetIntensity - intensity) * 0.10;
+
   page.style.transform =
     `translate3d(${moveX}px,${moveY}px,0) scale(${sx},${sy})`;
+
+  // Hareket arttıkça üst ve alt kenarlar kararır
+  shade.style.setProperty(
+    "--darkness",
+    intensity * 0.85
+  );
+
+  shade.style.setProperty(
+    "--edge",
+    (23 - intensity * 9) + "%"
+  );
+
+  // Piksel ayrışması
+  drawPixels();
 
   requestAnimationFrame(animate);
 }
@@ -116,21 +234,18 @@ animate();
 function handleOrientation(e) {
   if (e.gamma === null || e.beta === null) return;
 
-  // İlk sensör verisi başlangıç noktasıdır
   if (baseGamma === null || baseBeta === null) {
     baseGamma = e.gamma;
     baseBeta = e.beta;
     return;
   }
 
-  // Başlangıç açısına göre fark
   const deltaX = e.gamma - baseGamma;
   const deltaY = e.beta - baseBeta;
 
   const x = clamp(deltaX / 35, -1, 1);
   const y = clamp(deltaY / 35, -1, 1);
 
-  // Ters yönde uzama
   tx = 1 + Math.abs(x) * 0.20;
   ty = 1 + Math.abs(y) * 0.20;
 
@@ -142,10 +257,18 @@ function handleOrientation(e) {
 
   targetX = -x * 12;
   targetY = -y * 12;
+
+  // Hareketin gücüne göre kararma ve pikseller
+  targetIntensity = clamp(
+    Math.sqrt(x * x + y * y),
+    0, 1
+  );
 }
 
 async function startSensors() {
   try {
+    if (started) return;
+
     if (
       typeof DeviceOrientationEvent !== "undefined" &&
       typeof DeviceOrientationEvent.requestPermission === "function"
@@ -157,12 +280,6 @@ async function startSensors() {
         alert("Sensör izni verilmedi.");
         return;
       }
-    }
-
-    if (started) {
-      baseGamma = null;
-      baseBeta = null;
-      return;
     }
 
     started = true;
