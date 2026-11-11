@@ -4,266 +4,113 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>iPhone Duo Motion</title>
-
+<title>Duo Motion</title>
 <style>
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  background: radial-gradient(circle at center, #263b59, #080d18 75%);
+  overflow: hidden;
+  background: #080d19;
   color: white;
-  font-family: Arial, sans-serif;
-  min-height: 100vh;
+  font-family: Arial;
+}
+
+#page {
+  position: absolute;
+  inset: -35px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  background:
+    radial-gradient(circle at 30% 30%, #234a79, transparent 45%),
+    radial-gradient(circle at 75% 75%, #46245f, transparent 45%),
+    #080d19;
+  will-change: transform;
 }
 
-h2 {
+h1 {
+  font-size: 45px;
   font-weight: 300;
-  letter-spacing: 4px;
-  margin-bottom: 70px;
+  letter-spacing: 8px;
 }
 
-.scene {
-  width: 310px;
-  height: 260px;
-  perspective: 1000px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+p {
+  font-size: 17px;
+  color: #b5c8e9;
 }
 
-.phone {
-  width: 300px;
+.glow {
+  width: 190px;
   height: 190px;
-  position: relative;
-  transform-style: preserve-3d;
-  transform: rotateX(-8deg);
-  transition: transform .15s ease-out;
-}
-
-.half {
-  position: absolute;
-  top: 0;
-  width: 150px;
-  height: 190px;
-  background: linear-gradient(145deg,#30343c,#090c12);
-  border: 3px solid #9ca8b7;
-  border-radius: 19px;
-  overflow: hidden;
-  transform-style: preserve-3d;
-  transition: transform .15s ease-out;
-}
-
-.left {
-  left: 0;
-  transform-origin: right center;
-}
-
-.right {
-  left: 150px;
-  transform-origin: left center;
-}
-
-.screen {
-  position: absolute;
-  inset: 5px;
-  border-radius: 13px;
-  background:
-    radial-gradient(circle at 70% 25%, #65c9ff, transparent 35%),
-    linear-gradient(140deg,#152c63,#070d21 65%,#421b58);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 30px;
-}
-
-.right .screen {
-  background:
-    radial-gradient(circle at 30% 70%, #a66cff, transparent 40%),
-    linear-gradient(140deg,#172d61,#080c1d 70%);
-}
-
-.hinge {
-  position: absolute;
-  left: 147px;
-  height: 190px;
-  width: 6px;
-  background: linear-gradient(90deg,#555,#ddd,#555);
-  z-index: 5;
-  border-radius: 5px;
-}
-
-.camera {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  width: 9px;
-  height: 9px;
-  background: black;
-  border: 2px solid #657080;
   border-radius: 50%;
+  background: radial-gradient(circle, #75caff, #6545b5, transparent 70%);
+  filter: blur(5px);
+  margin: 25px;
 }
 
 button {
-  margin: 12px;
-  padding: 15px 25px;
-  border: 1px solid #7aaeff;
-  border-radius: 30px;
-  background: #17345d;
+  background: #315c91;
   color: white;
-  font-size: 15px;
-}
-
-.info {
-  color: #a9c9f5;
-  margin-top: 20px;
-  font-size: 13px;
-  text-align: center;
-}
-
-#angle {
-  font-size: 25px;
-  margin-top: 10px;
+  border: 0;
+  padding: 15px 25px;
+  border-radius: 30px;
+  font-size: 16px;
 }
 </style>
 </head>
 
 <body>
 
-<h2>iPHONE DUO</h2>
-
-<div class="scene">
-  <div class="phone" id="phone">
-
-    <div class="half left" id="left">
-      <div class="screen">◈</div>
-      <div class="camera"></div>
-    </div>
-
-    <div class="half right" id="right">
-      <div class="screen">✦</div>
-      <div class="camera"></div>
-    </div>
-
-    <div class="hinge"></div>
-  </div>
-</div>
-
-<div id="angle">Açılma: 0°</div>
-
-<button onclick="enableSensors()">
-  Sensörleri Etkinleştir
-</button>
-
-<button onclick="toggleFold()">
-  Aç / Kapat
-</button>
-
-<div class="info" id="status">
-  Telefonun hareketi animasyonu kontrol eder.
+<div id="page">
+  <h1>DUO</h1>
+  <div class="glow"></div>
+  <p>Move your iPhone</p>
+  <button onclick="startSensors()">Başlat</button>
 </div>
 
 <script>
-const left = document.getElementById("left");
-const right = document.getElementById("right");
-const phone = document.getElementById("phone");
-const angleText = document.getElementById("angle");
-const statusText = document.getElementById("status");
+const page = document.getElementById("page");
 
-let fold = 0;
-let baseline = null;
-let baseGamma = 0;
-let sensorActive = false;
-let autoTimer = null;
+let x = 0, y = 0;
+let targetX = 0, targetY = 0;
 
-function clamp(v,min,max) {
-  return Math.max(min,Math.min(max,v));
+function animate() {
+  x += (targetX - x) * 0.09;
+  y += (targetY - y) * 0.09;
+
+  page.style.transform =
+    `translate3d(${x}px, ${y}px, 0)`;
+
+  requestAnimationFrame(animate);
 }
 
-function render() {
-  const a = fold;
+animate();
 
-  left.style.transform = `rotateY(${a}deg)`;
-  right.style.transform = `rotateY(${-a}deg)`;
-
-  angleText.textContent =
-    "Açılma: " + Math.round(180-a) + "°";
-}
-
-function orientation(event) {
-  if (event.beta === null) return;
-
-  if (baseline === null) {
-    baseline = event.beta;
-    baseGamma = event.gamma || 0;
-  }
-
-  const difference = event.beta - baseline;
-
-  fold = clamp(85 - difference * 1.5, 0, 85);
-
-  const tilt = clamp(
-    (event.gamma || 0) - baseGamma,
-    -35,35
-  );
-
-  phone.style.transform =
-    `rotateX(${-8 + tilt * .4}deg) rotateZ(${tilt * .3}deg)`;
-
-  render();
-}
-
-async function enableSensors() {
+async function startSensors() {
   try {
     if (
       typeof DeviceOrientationEvent !== "undefined" &&
       typeof DeviceOrientationEvent.requestPermission === "function"
     ) {
-      const permission =
+      const result =
         await DeviceOrientationEvent.requestPermission();
 
-      if (permission !== "granted") {
-        statusText.textContent = "Sensör izni verilmedi.";
-        return;
-      }
+      if (result !== "granted") return;
     }
 
-    window.addEventListener("deviceorientation", orientation);
-    sensorActive = true;
-    baseline = null;
+    window.addEventListener("deviceorientation", (e) => {
+      if (e.gamma === null || e.beta === null) return;
 
-    statusText.textContent = "Sensörler aktif! Telefonunu hareket ettir.";
+      targetX = Math.max(-35, Math.min(35, e.gamma * 1.5));
+      targetY = Math.max(-35, Math.min(35, (e.beta - 45) * 1.2));
+    });
+
   } catch (error) {
-    statusText.textContent =
-      "Sensör açılamadı. HTTPS üzerinden tekrar dene.";
+    alert("Sensör erişimi sağlanamadı.");
   }
 }
-
-function toggleFold() {
-  if (autoTimer) clearInterval(autoTimer);
-
-  const target = fold < 40 ? 85 : 0;
-
-  autoTimer = setInterval(() => {
-    if (Math.abs(fold-target) < 1) {
-      fold = target;
-      clearInterval(autoTimer);
-      autoTimer = null;
-      render();
-      return;
-    }
-
-    fold += target > fold ? 1 : -1;
-    render();
-  }, 12);
-}
-
-render();
 </script>
 
 </body>
