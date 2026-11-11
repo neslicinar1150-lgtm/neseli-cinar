@@ -4,78 +4,67 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Duo Motion Effect</title>
+<title>Duo Stretch</title>
 
 <style>
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 html, body {
+  margin: 0;
   width: 100%;
   height: 100%;
-  margin: 0;
   overflow: hidden;
-  background: #111827;
-  font-family: Arial, sans-serif;
+  background: #101827;
 }
 
 #page {
   position: absolute;
-  inset: -70px;
+  inset: -100px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  color: white;
   background:
-    radial-gradient(circle at 20% 20%, #6688a0, transparent 45%),
-    radial-gradient(circle at 80% 80%, #80628b, transparent 45%),
-    linear-gradient(145deg, #34465c, #111827);
+    radial-gradient(circle at 30% 30%, #8bb7d3, transparent 45%),
+    radial-gradient(circle at 80% 80%, #73528d, transparent 50%),
+    linear-gradient(140deg, #263d5b, #101827);
+  transform-origin: center;
   will-change: transform;
 }
 
 h1 {
-  font-size: 65px;
+  font-size: 70px;
   font-weight: 300;
   letter-spacing: 10px;
-  color: white;
-}
-
-p {
-  color: #d8e4f1;
-  font-size: 18px;
 }
 
 .card {
-  width: 240px;
+  width: 230px;
   height: 300px;
-  border-radius: 25px;
-  background: linear-gradient(145deg, #d7c6a5, #495d76);
-  box-shadow: 0 20px 60px #0008;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 35px;
+  border-radius: 30px;
+  background: linear-gradient(145deg,#d8c9a9,#53647b);
+  display: grid;
+  place-items: center;
+  font-size: 60px;
+  box-shadow: 0 20px 60px #0006;
 }
 
-#status {
-  position: fixed;
-  bottom: 25px;
-  color: white;
-  z-index: 10;
+p {
+  font-size: 18px;
 }
 
 button {
   position: fixed;
+  z-index: 5;
   top: 20px;
-  z-index: 20;
+  left: 50%;
+  transform: translateX(-50%);
   padding: 14px 24px;
-  border: 0;
+  border: none;
   border-radius: 30px;
-  background: #3879c9;
   color: white;
-  font-size: 16px;
+  background: #397bc5;
 }
 </style>
 </head>
@@ -87,59 +76,53 @@ button {
 <div id="page">
   <h1>DUO</h1>
   <div class="card">9:41</div>
-  <p>Hareketi hisset.</p>
+  <p>Dynamic Stretch</p>
 </div>
-
-<div id="status">Sensör bekleniyor...</div>
 
 <script>
 const page = document.getElementById("page");
-const statusText = document.getElementById("status");
 
-let currentX = 0;
-let targetX = 0;
-let currentY = 0;
-let targetY = 0;
+let sx = 1, sy = 1;
+let tx = 1, ty = 1;
+let moveX = 0, moveY = 0;
+let targetX = 0, targetY = 0;
 
-const maxMove = 65;
-const sensitivity = 2;
-
-function clamp(value, min, max) {
-  return Math.max(min, Math.min(max, value));
+function clamp(v,min,max) {
+  return Math.max(min,Math.min(max,v));
 }
 
-// Yumuşak animasyon
 function animate() {
-  currentX += (targetX - currentX) * 0.12;
-  currentY += (targetY - currentY) * 0.12;
+  sx += (tx-sx)*0.12;
+  sy += (ty-sy)*0.12;
+  moveX += (targetX-moveX)*0.12;
+  moveY += (targetY-moveY)*0.12;
 
   page.style.transform =
-    `translate3d(${currentX}px, ${currentY}px, 0)`;
+    `translate3d(${moveX}px,${moveY}px,0) scale(${sx},${sy})`;
 
   requestAnimationFrame(animate);
 }
-
 animate();
 
-// Telefon sensörleri
-function handleMotion(event) {
-  if (event.gamma === null) return;
+function handleOrientation(e) {
+  if (e.gamma === null || e.beta === null) return;
 
-  // Sola eğilince sayfa sağa gider
-  targetX = clamp(
-    -event.gamma * sensitivity,
-    -maxMove,
-    maxMove
-  );
+  const x = clamp(e.gamma / 35, -1, 1);
+  const y = clamp((e.beta - 45) / 35, -1, 1);
 
-  // Öne ve arkaya eğilme
-  if (event.beta !== null) {
-    targetY = clamp(
-      -(event.beta - 45) * 1.5,
-      -maxMove,
-      maxMove
-    );
-  }
+  // Hareket yönünde uzama
+  tx = 1 + Math.abs(x) * 0.20;
+  ty = 1 + Math.abs(y) * 0.20;
+
+  // Uzama karşı kenardan başlasın
+  const originX = x > 0 ? "left" : "right";
+  const originY = y > 0 ? "top" : "bottom";
+
+  page.style.transformOrigin =
+    `${originX} ${originY}`;
+
+  targetX = x * 12;
+  targetY = y * 12;
 }
 
 async function startSensors() {
@@ -151,21 +134,15 @@ async function startSensors() {
       const permission =
         await DeviceOrientationEvent.requestPermission();
 
-      if (permission !== "granted") {
-        statusText.textContent = "Sensör izni verilmedi.";
-        return;
-      }
+      if (permission !== "granted") return;
     }
 
     window.addEventListener(
       "deviceorientation",
-      handleMotion
+      handleOrientation
     );
-
-    statusText.textContent = "Duo efekti aktif!";
-  } catch (error) {
-    statusText.textContent =
-      "Sensör erişimi başarısız. HTTPS gerekli olabilir.";
+  } catch (err) {
+    alert("Sensör erişimi başarısız.");
   }
 }
 </script>
